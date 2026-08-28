@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FieldNotes — issue tracking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+  <div class="page">
+    <header class="masthead">
+      <div class="mark" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="34" height="34">
+          <ellipse cx="32" cy="34" rx="12" ry="16" class="mark-body" />
+          <circle cx="32" cy="16" r="7" class="mark-body" />
+          <line x1="20" y1="26" x2="6" y2="18" class="mark-leg" />
+          <line x1="20" y1="34" x2="4" y2="34" class="mark-leg" />
+          <line x1="20" y1="42" x2="6" y2="50" class="mark-leg" />
+          <line x1="44" y1="26" x2="58" y2="18" class="mark-leg" />
+          <line x1="44" y1="34" x2="60" y2="34" class="mark-leg" />
+          <line x1="44" y1="42" x2="58" y2="50" class="mark-leg" />
+        </svg>
+      </div>
+      <div class="masthead-text">
+        <h1>FieldNotes</h1>
+        <p class="tagline">A specimen log for software bugs — catalogue, track, and resolve.</p>
+      </div>
+      <div class="identity">
+        <label for="userNameInput" class="field-label small">Logged in as</label>
+        <input type="text" id="userNameInput" placeholder="Your name" />
+        <a href="/analytics" class="nav-link">View analytics →</a>
+      </div>
+    </header>
+
+    <!-- ===================== LIST VIEW ===================== -->
+    <main id="listView">
+      <div class="toolbar card">
+        <input type="text" id="searchInput" placeholder="Search by title, description, or #id…" class="search-input" />
+        <select id="filterStatus"><option value="">All statuses</option></select>
+        <select id="filterPriority"><option value="">All priorities</option></select>
+        <button id="newIssueButton" class="primary-button">+ New Issue</button>
+      </div>
+
+      <div id="issueList" class="issue-list"></div>
+      <p id="emptyState" class="empty-state hidden">No issues match — try clearing filters, or log the first one.</p>
+    </main>
+
+    <!-- ===================== NEW ISSUE FORM (modal) ===================== -->
+    <div id="newIssueModal" class="modal-overlay hidden">
+      <div class="modal card">
+        <div class="modal-header">
+          <h2>Log a new issue</h2>
+          <button id="closeNewIssue" class="icon-button" aria-label="Close">×</button>
+        </div>
+
+        <label class="field-label small">Title</label>
+        <input type="text" id="newTitle" placeholder="Short, specific summary of the problem" />
+        <div id="duplicateWarning" class="duplicate-warning hidden"></div>
+
+        <label class="field-label small">Description</label>
+        <textarea id="newDescription" rows="4" placeholder="What's happening? What did you expect instead?"></textarea>
+
+        <label class="field-label small">Steps to reproduce</label>
+        <textarea id="newSteps" rows="3" placeholder="1. Go to…&#10;2. Click…&#10;3. See error"></textarea>
+
+        <div class="form-grid">
+          <div>
+            <label class="field-label small">Severity</label>
+            <select id="newSeverity"></select>
+          </div>
+          <div>
+            <label class="field-label small">Priority</label>
+            <select id="newPriority"></select>
+          </div>
+          <div>
+            <label class="field-label small">Component</label>
+            <input type="text" id="newComponent" placeholder="e.g. Login, API, UI" />
+          </div>
+          <div>
+            <label class="field-label small">Assignee (optional)</label>
+            <input type="text" id="newAssignee" placeholder="Leave blank if unassigned" />
+          </div>
+        </div>
+
+        <button id="submitNewIssue" class="primary-button">Submit issue</button>
+        <p id="newIssueError" class="error-text hidden"></p>
+      </div>
+    </div>
+
+    <!-- ===================== DETAIL VIEW ===================== -->
+    <main id="detailView" class="hidden">
+      <a href="/" class="back-link">← Back to all issues</a>
+
+      <div class="card detail-card">
+        <div id="detailLoading" class="status-block"><p>Loading…</p></div>
+        <div id="detailError" class="status-block hidden"><p class="error-text"></p></div>
+
+        <div id="detailContent" class="hidden">
+          <div class="detail-header">
+            <span id="detailIdBadge" class="id-badge"></span>
+            <h2 id="detailTitle"></h2>
+          </div>
+
+          <div class="detail-meta">
+            <div class="meta-field">
+              <span class="field-label small">Status</span>
+              <select id="detailStatus"></select>
+            </div>
+            <div class="meta-field">
+              <span class="field-label small">Priority</span>
+              <select id="detailPriority"></select>
+            </div>
+            <div class="meta-field">
+              <span class="field-label small">Severity</span>
+              <select id="detailSeverity"></select>
+            </div>
+            <div class="meta-field">
+              <span class="field-label small">Assignee</span>
+              <input type="text" id="detailAssignee" placeholder="Unassigned" />
+            </div>
+          </div>
+
+          <div class="detail-body">
+            <div class="detail-block">
+              <span class="field-label small">Description</span>
+              <p id="detailDescription" class="detail-text"></p>
+            </div>
+            <div id="detailStepsBlock" class="detail-block">
+              <span class="field-label small">Steps to reproduce</span>
+              <p id="detailSteps" class="detail-text"></p>
+            </div>
+            <div class="detail-block">
+              <span class="field-label small">Reported by</span>
+              <p id="detailReporter" class="detail-text"></p>
+            </div>
+          </div>
+
+          <div class="comments-section">
+            <span class="field-label small">Activity &amp; comments</span>
+            <div id="commentsList" class="comments-list"></div>
+
+            <textarea id="newCommentText" rows="3" placeholder="Add a comment…"></textarea>
+            <button id="submitComment" class="secondary-button">Post comment</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ===================== ANALYTICS VIEW ===================== -->
+    <main id="analyticsView" class="hidden">
+      <a href="/" class="back-link">← Back to all issues</a>
+      <div class="card">
+        <h2 class="analytics-title">Analytics</h2>
+        <p id="analyticsTotal" class="analytics-total"></p>
+
+        <div class="analytics-section">
+          <span class="field-label small">By status</span>
+          <div id="chartStatus" class="bar-chart"></div>
+        </div>
+        <div class="analytics-section">
+          <span class="field-label small">By priority</span>
+          <div id="chartPriority" class="bar-chart"></div>
+        </div>
+        <div class="analytics-section">
+          <span class="field-label small">By component</span>
+          <div id="chartComponent" class="bar-chart"></div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="page-footer">
+      <p>An independent reinterpretation of the bug-tracking problem. Reference concept: <a href="https://www.bugzilla.org/" target="_blank" rel="noopener">Bugzilla</a>.</p>
+    </footer>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
